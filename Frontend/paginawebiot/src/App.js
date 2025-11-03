@@ -2,42 +2,37 @@ import { useEffect, useState } from "react";
 
 function App() {
   const [distancia, setDistancia] = useState(0);
-  const [wsConectado, setWsConectado] = useState(false);
 
+  // Cambia esta URL por la de tu backend en Render
+  const API_URL = "https://api-motor.onrender.com"; 
+
+  // Polling para actualizar distancia cada 500 ms
   useEffect(() => {
-    const ws = new WebSocket("ws://localhost:8080");
+    const interval = setInterval(async () => {
+      try {
+        const res = await fetch(`${API_URL}/sensor`);
+        const data = await res.json();
+        if (data.distancia !== undefined) setDistancia(data.distancia);
+      } catch (err) {
+        console.error("Error al obtener distancia:", err);
+      }
+    }, 500);
 
-    ws.onopen = () => {
-      console.log("WebSocket conectado");
-      setWsConectado(true);
-    };
+    return () => clearInterval(interval);
+  }, [API_URL]);
 
-    ws.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      if (data.distancia !== undefined) setDistancia(data.distancia);
-    };
-
-    ws.onerror = (err) => {
-      console.error("WebSocket error", err);
-      setWsConectado(false);
-    };
-
-    ws.onclose = () => {
-      console.log("WebSocket desconectado");
-      setWsConectado(false);
-    };
-
-    return () => ws.close();
-  }, []);
-
+  // Función para enviar comandos al motor
   const enviarComando = async (comando) => {
-    await fetch(`http://localhost:3000/motor/${comando}`, { method: "POST" });
+    try {
+      await fetch(`${API_URL}/motor/${comando}`, { method: "POST" });
+    } catch (err) {
+      console.error("Error al enviar comando:", err);
+    }
   };
 
   return (
     <div style={{ textAlign: "center", marginTop: "50px" }}>
       <h1>Distancia en tiempo real: {distancia} cm</h1>
-      {!wsConectado && <p style={{ color: "red" }}>WebSocket desconectado</p>}
 
       <div style={{ marginTop: "20px" }}>
         <button onClick={() => enviarComando("derecha")}>Derecha</button>
