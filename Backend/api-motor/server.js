@@ -8,7 +8,7 @@ app.use(cors());
 app.use(express.json());
 
 const PORT = 3000;
-const IP_ARDUINO = "192.168.1.104"; // La IP de tu Arduino
+const IP_ARDUINO = "10.238.6.10"; // La IP de tu Arduino
 
 // Rutas para controlar motor desde React
 app.post("/motor/:comando", async (req, res) => {
